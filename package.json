@@ -1,0 +1,11 @@
+{
+  "name": "dat-tv-website",
+  "version": "1.0.0",
+  "description": "a player in browser where you throw dat-tv link to watch the video/audio :D",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "coderatlabs@gmail.com, suthar.ashok@outlook.com <Ashok>",
+  "license": "MIT"
+}
