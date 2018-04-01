@@ -26,7 +26,6 @@ btn.addEventListener('click', function () {
 
   datlink = datLinkInputValue
 
-  console.log('setting up src now')
   vid.src = datlink
 })
 
