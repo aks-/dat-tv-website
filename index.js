@@ -2,6 +2,7 @@ var btn = document.querySelector('button')
 var vid = document.querySelector('video')
 var datlink = null
 var offset = null
+var list = []
 
 function isDatUrl (url) {
   var isdaturl = false
@@ -12,8 +13,23 @@ function isDatUrl (url) {
   return isdaturl
 }
 
+function getLinkToVideo () {
+  if (list.length > 0) {
+    return new URL(`${datlink}${list[0].name}`).href
+  }
+}
+
+async function playTv (url) {
+  try {
+    datlink = url
+    var videosrc = await getVideoSrc(url)
+    await setVideoParamsAndPlay(videosrc)
+  } catch (e) {
+    alert(e.message)
+  }
+}
+
 async function getVideoSrc (url) {
-  window._url = url
   if (url[url.length - 1] === '/') {
     url = url.slice(0, -1)
   }
@@ -25,7 +41,7 @@ async function getVideoSrc (url) {
   }
 
   var playlist = await archive.readFile('/playlist.json', 'utf-8')
-  var list = JSON.parse(playlist)
+  list = JSON.parse(playlist)
 
   var total = list.map(function (item) {
     return item.duration
@@ -41,8 +57,18 @@ async function getVideoSrc (url) {
     list.push(first)
   }
 
-  if (list.length > 0) { 
-    return new URL(`${url}${list[0].name}`).href
+  return getLinkToVideo()
+}
+
+async function setVideoParamsAndPlay (videosrc) {
+  vid.src = videosrc
+  vid.currentTime = offset
+  try {
+    var playPromise = await vid.play()
+  } catch (_) {
+    setTimeout(function () {
+      vid.play() 
+    }, 100)
   }
 }
 
@@ -61,12 +87,22 @@ btn.addEventListener('click', async function () {
 
   datlink = datLinkInputValue
 
-  try {
-    var videosrc = await getVideoSrc(datlink)
-    vid.src = videosrc
-    vid.currentTime = offset
-    vid.play()
-  } catch (e) {
-    alert(e.message)
-  }
+  playTv(datlink)
 })
+
+vid.addEventListener('ended', async function () {
+  offset = 0
+  list.shift()
+  var videosrc = getLinkToVideo()
+  await setVideoParamsAndPlay(videosrc)
+})
+
+var hash = new URL(window.location.href).hash
+
+async function init (hash) {
+  await playTv(hash)
+}
+
+if (isDatUrl(hash.slice(1))) {
+  init(hash.slice(1))
+}
